@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'register_page.dart';
+import '../repositories/auth_repository.dart';
 
 import '../screens/home_screen.dart';
 
@@ -19,31 +20,30 @@ class _LoginPageState extends State<LoginPage> {
   bool _carregando = false;
 
   Future<void> _fazerLogin() async {
-    final email = _emailController.text.trim();
-    final senha = _senhaController.text.trim();
+  final email = _emailController.text.trim();
+  final senha = _senhaController.text.trim();
 
-    if (email.isEmpty || senha.isEmpty) {
-      _mostrarErro("Preencha todos os campos.");
-      return;
-    }
+  if (email.isEmpty || senha.isEmpty) {
+    _mostrarErro("Preencha todos os campos.");
+    return;
+  }
 
-    setState(() => _carregando = true);
+  setState(() => _carregando = true);
 
-  
-    await Future.delayed(const Duration(seconds: 1));
+  try {
+    final repository = AuthRepository();
+    await repository.login(email, senha);
 
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  } catch (e) {
+    _mostrarErro("Email ou senha incorretos.");
+  } finally {
     setState(() => _carregando = false);
-
-  
-    if (email == "teste@email.com" && senha == "123456") {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
-    } else {
-      _mostrarErro("Email ou senha incorretos.");
-    }
+  }
   }
 
   void _mostrarErro(String mensagem) {
